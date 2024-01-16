@@ -1,0 +1,70 @@
+trigger:
+- main  # Adjust this to your main branch
+
+pr:
+- '*'
+
+jobs:
+- job: Build
+  displayName: 'Build and Deploy to GitHub Pages'
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+  - script: |
+      echo '##vso[task.setvariable variable=BUILD_REPOSITORY_LOCALPATH;isOutput=true]'$(Build.Repository.LocalPath)
+    displayName: 'Set output variable for repository path'
+
+  - checkout: self
+
+  - task: UseDotNet@2
+    inputs:
+      packageType: 'sdk'
+      version: '2.1.x'
+
+  - script: |
+      dotnet tool install -g GitHubPagesFromDocfx
+      export PATH="$PATH:/home/vsts/.dotnet/tools"
+      docfx
+      docfx_metadata
+    displayName: 'Install docfx and build documentation'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.Repository.LocalPath)/_site'
+      artifactName: 'docs'
+      publishLocation: 'Container'
+    displayName: 'Publish documentation artifacts'
+
+- job: Deploy
+  displayName: 'Deploy to GitHub Pages'
+  pool:
+    vmImage: 'ubuntu-latest'
+  dependsOn: Build
+  variables:
+    BUILD_REPOSITORY_LOCALPATH: $(dependencies.Build.outputs['Build.Build.DocsArtifacts'])/docs
+  steps:
+  - task: DownloadBuildArtifacts@0
+    inputs:
+      buildType: 'specific'
+      project: '<Your GitHub Project Name>'
+      pipeline: $(dependencies.Build.outputs['Build.Build.DocsId'])
+      buildVersionToDownload: 'latest'
+      downloadType: 'single'
+      downloadPath: $(System.ArtifactsDirectory)/_site
+    displayName: 'Download documentation artifacts'
+
+  - task: CopyFiles@2
+    inputs:
+      SourceFolder: '$(System.ArtifactsDirectory)/_site'
+      Contents: '**'
+      TargetFolder: '$(BUILD_REPOSITORY_LOCALPATH)/_site'
+    displayName: 'Copy documentation artifacts'
+
+  - script: |
+      git config --global user.email "<Your Email>"
+      git config --global user.name "<Your Username>"
+      git add .
+      git commit -m "Update documentation"
+      git push
+    workingDirectory: '$(BUILD_REPOSITORY_LOCALPATH)'
+    displayName: 'Commit and push changes'
