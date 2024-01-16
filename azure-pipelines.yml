@@ -19,12 +19,25 @@ jobs:
   
 
   - script: |
-      dotnet tool install -g docfx --version 2.56.3
-      export PATH="$PATH:/home/vsts/.dotnet/tools"
-      docfx
-      docfx_metadata
-    displayName: 'Install docfx and build documentation'
-
+     git clone https://github.com/bansal28/githubpagestest.git
+            
+            cd githubpagestest
+            
+            ls
+            
+            new_content="Hello World"
+            
+            # Check if the readme.md file exists
+            if [ -f "readme.md" ]; then
+                # Replace the content of the readme.md file
+                echo "$new_content" > README.md
+                echo "Readme.md updated successfully!"
+            else
+                # If the file doesn't exist, create it with the new content
+                echo "$new_content" > readme.md
+                echo "Readme.md created with 'Hello World' content!"
+            fi
+            
   - task: PublishBuildArtifacts@1
     inputs:
       pathtoPublish: '$(Build.Repository.LocalPath)/_site'
