@@ -22,7 +22,7 @@ jobs:
       version: '2.1.x'
 
   - script: |
-      dotnet tool install -g GitHubPagesFromDocfx
+      dotnet tool install -g docfx
       export PATH="$PATH:/home/vsts/.dotnet/tools"
       docfx
       docfx_metadata
