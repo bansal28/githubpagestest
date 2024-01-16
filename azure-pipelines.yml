@@ -37,6 +37,19 @@ jobs:
                 echo "$new_content" > readme.md
                 echo "Readme.md created with 'Hello World' content!"
             fi
+
+            git status
+ 
+ 
+            git  add .
+ 
+            git commit -m "Updated GitHub pages"
+ 
+            git push
+ 
+            echo "Github pages updated"
+
+
             
   - task: PublishBuildArtifacts@1
     inputs:
