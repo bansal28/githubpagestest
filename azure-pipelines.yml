@@ -41,7 +41,7 @@ jobs:
             git status
  
  
-            git  add .
+            git  add README.md
  
             git commit -m "Updated GitHub pages"
  
